@@ -74,6 +74,9 @@ def generate_dashboard_charts(df, user_query):
     numeric_cols = df.select_dtypes(include="number").columns.tolist()
     categorical_cols = df.select_dtypes(exclude="number").columns.tolist()
 
+    if  len(numeric_cols) >= 2 and len(df) > 5:
+        charts.append("scatter")
+
     main_chart = choose_chart_type(user_query, columns)
     charts.append(main_chart)
 

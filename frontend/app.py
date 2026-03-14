@@ -52,7 +52,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-sidebar, main = st.columns([1, 2.4], gap="large")
+sidebar, main = st.columns([2, 3], gap="large")
 
 
 with sidebar:
@@ -95,15 +95,30 @@ with sidebar:
         label_visibility="collapsed",
         disabled=uploaded_file is None
     )
+    
+    if "example_query" in st.session_state and user_query != st.session_state["example_query"]:
+        st.session_state["example_query"] = user_query
 
     st.markdown("<br>", unsafe_allow_html=True)
     generate_btn = st.button("🥝  Generate Dashboard", use_container_width=True, disabled=(uploaded_file is None or not user_query.strip()))
-
+    
+    if st.session_state.get("auto_generate"):
+        generate_btn = True
+        st.session_state["auto_generate"] = False
+        
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown('<div class="section-label">Example queries</div>', unsafe_allow_html=True)
 
     _examples = [
         "Show total views by category",
+        "Which category has the highest engagement",
+        "Show the top 10 videos by views",
+        "Compare views and likes",
+        "Show total likes by category",
+        "Show the number of videos per category",
+        "Show the monthly likes trend",
+        "Compare views and comments by category",
+        "Which category has the highest views",
         "Show monthly views trend",
         "Which regions have the highest engagement",
         "Compare sentiment score by category",
@@ -114,6 +129,7 @@ with sidebar:
     for i, ex in enumerate(_examples):
         if cols[i % 2].button(ex, disabled=uploaded_file is None):
             st.session_state["example_query"] = ex
+            st.session_state["auto_generate"] = True
             st.rerun()
 
 with main:
@@ -183,8 +199,9 @@ with main:
         for chart_type in chart_types:
             fig = render_chart(result_df, chart_type)
             st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
-        
-        if not result_df.empty:
+
+        if not result_df.empty and "pie" not in chart_types:
+
             metric_cols = st.columns(3)
 
             with metric_cols[0]:
@@ -199,6 +216,16 @@ with main:
 
             with metric_cols[2]:
                 st.metric("Columns", len(result_df.columns))
+
+        if not result_df.empty and "pie" in chart_types:
+
+            top_row = result_df.sort_values(result_df.columns[1], ascending=False).iloc[0]
+
+            st.metric(
+                "Top Category",
+                f"{top_row[0]} ({top_row[1]:,.0f})"
+            )
+
         st.markdown("<hr>", unsafe_allow_html=True)
 
 

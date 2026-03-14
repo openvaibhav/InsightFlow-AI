@@ -1,9 +1,10 @@
 from __future__ import annotations
 from pathlib import Path
 import pandas as pd
+import re
 
 def _infer_type_label(series: pd.Series):
-    
+
     dtype = series.dtype
 
     if pd.api.types.is_datetime64_any_dtype(dtype):
@@ -29,12 +30,12 @@ def _infer_type_label(series: pd.Series):
 
 
 def _derive_table_name(csv_path: str | Path):
-    
+
     return Path(csv_path).stem.lower()
 
 
 def _build_schema_description(table_name: str, df: pd.DataFrame):
-    
+
     lines: list[str] = [
         f"Table: {table_name}",
         "Columns:",
@@ -50,8 +51,9 @@ def _build_schema_description(table_name: str, df: pd.DataFrame):
 
     return "\n".join(lines)
 
+
 def safe_read_csv(file):
-    
+
     encodings = ["utf-8", "latin-1", "cp1252"]
 
     for enc in encodings:
@@ -62,17 +64,63 @@ def safe_read_csv(file):
 
     raise ValueError("Could not decode CSV with common encodings")
 
+def _find_header_line(file):
+    file.seek(0)
+
+    for i in range(30):
+        line = file.readline()
+
+        if isinstance(line, bytes):
+            line = line.decode(errors="ignore")
+
+        line = str(line).lower()
+
+        if "video_id" in line or "category" in line:
+            return i
+
+    return None
+
+def _clean_column_names(df: pd.DataFrame):
+    clean_cols = []
+
+    for col in df.columns:
+        col = str(col)
+
+        # remove html junk
+        col = re.sub(r"<.*?>", "", col)
+
+        # remove weird characters
+        col = re.sub(r"[^\w_]", "", col)
+
+        # fallback if empty
+        if not col:
+            col = "column"
+
+        clean_cols.append(col)
+
+    df.columns = clean_cols
+    return df
 
 def load_schema(csv_input, *, parse_dates=True, encoding="utf-8", **read_csv_kwargs):
-    
+
     common_kwargs = {"low_memory": False, **read_csv_kwargs}
 
     if not isinstance(csv_input, (str, Path)):
-        try:
-            csv_input.seek(0)
-            df = pd.read_csv(csv_input, encoding="utf-8", **common_kwargs)
-        except UnicodeDecodeError:
-            df = pd.read_csv(csv_input, encoding="latin-1", **common_kwargs)
+
+        header_line = _find_header_line(csv_input)
+
+        csv_input.seek(0)
+
+        if header_line is not None:
+            try:
+                df = pd.read_csv(csv_input, skiprows=header_line, encoding="utf-8", **common_kwargs)
+                df = _clean_column_names(df)
+            except UnicodeDecodeError:
+                csv_input.seek(0)
+                df = pd.read_csv(csv_input, skiprows=header_line, encoding="latin-1", **common_kwargs)
+                df = _clean_column_names(df)
+        else:
+            df = safe_read_csv(csv_input)
 
         table_name = "uploaded_dataset"
 
@@ -82,13 +130,21 @@ def load_schema(csv_input, *, parse_dates=True, encoding="utf-8", **read_csv_kwa
         if not csv_path.exists():
             raise FileNotFoundError(f"CSV file not found: {csv_path.resolve()}")
 
-        try:
-            df = pd.read_csv(csv_path, encoding="utf-8", **common_kwargs)
-        except UnicodeDecodeError:
-            df = pd.read_csv(csv_path, encoding="latin-1", **common_kwargs)
+        with open(csv_path, "rb") as f:
+            header_line = _find_header_line(f)
+
+        if header_line is not None:
+            try:
+                df = pd.read_csv(csv_path, skiprows=header_line, encoding="utf-8", **common_kwargs)
+                df = _clean_column_names(df)
+            except UnicodeDecodeError:
+                df = pd.read_csv(csv_path, skiprows=header_line, encoding="latin-1", **common_kwargs)
+                df = _clean_column_names(df)
+        else:
+            df = safe_read_csv(csv_path)
 
         table_name = csv_path.stem.lower()
-        
+
     schema_description = _build_schema_description(table_name, df)
 
     numeric_cols = df.select_dtypes(include="number").columns.tolist()

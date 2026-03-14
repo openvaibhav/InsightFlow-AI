@@ -38,6 +38,11 @@ def execute_query(
     if not sql_query:
         raise ValueError("sql_query must not be empty.")
 
+    sql_query = sql_query.rstrip(";")
+    
+    if "timestamp" in sql_query.lower() and "date" in df.columns:
+        sql_query = sql_query.replace("timestamp", "date")
+    
     if "limit" not in sql_query.lower():
         sql_query += " LIMIT 1000"
 

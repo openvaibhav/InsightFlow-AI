@@ -127,6 +127,12 @@ textarea:focus {
     font-size: 0.87rem;
     line-height: 1.55;
     color: #b0bace;
+
+    flex-wrap: wrap;
+    word-break: break-word;
+}
+.insight-item span {
+    flex: 1;
 }
 .insight-item:last-child {
     border-bottom: none;
@@ -147,9 +153,8 @@ textarea:focus {
     font-size: 0.78rem;
     color: #5a6280;
     line-height: 1.8;
-    white-space: pre;
-    overflow-x: auto;
-    margin-bottom: 5px;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 
 .chip-row {
