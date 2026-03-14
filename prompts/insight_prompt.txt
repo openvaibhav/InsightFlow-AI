@@ -12,6 +12,9 @@ Focus on:
 Keep the explanation concise and business friendly.
 
 Dataset Preview:
-{data}
+{csv_data}
+
+Statistics:
+{stats}
 
 Return 3-5 bullet point insights.
