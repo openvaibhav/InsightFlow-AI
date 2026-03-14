@@ -45,7 +45,6 @@ def choose_chart_type(user_query: str, dataframe_columns: list[str]):
 
     user_query = user_query.lower()
 
-    # ---- Query based rules ----
     if any(word in user_query for word in ["trend", "over time", "monthly", "daily"]):
         return "line"
 
