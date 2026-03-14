@@ -231,6 +231,14 @@ def render_chart(df: pd.DataFrame, chart_type: str):
 
     logger.debug("Rendering '%s' chart with columns: %s", chart_type, list(df.columns))
 
+    if len(df) == 1 and chart_type in {"bar", "pie"}:
+        return {
+            "type": "metric",
+            "label": df.columns[0],
+            "value": df.iloc[0, 0] if df.shape[1] == 1 else df.iloc[0, 1],
+            "category": df.iloc[0, 0] if df.shape[1] > 1 else None
+        }
+
     builder = _CHART_BUILDERS[chart_type]
     fig = builder(df)
 
