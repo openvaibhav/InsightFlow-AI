@@ -67,6 +67,5 @@ def resolve_followup(previous_query: str, followup_query: str):
     
     if resolved.lower() == followup_query.lower():
         logger.debug("Follow-up unchanged after resolution.")
-
-    logger.info("Resolved follow-up: %r → %r", followup_query, resolved)
+        
     return resolved
