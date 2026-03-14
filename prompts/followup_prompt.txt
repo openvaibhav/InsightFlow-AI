@@ -1,13 +1,11 @@
-You are a conversational data analyst.
+You are helping convert follow-up questions into full standalone queries.
 
-The user already generated a dashboard using this SQL query:
+Previous query:
+{previous_query}
 
-{previous_sql}
-
-The user now asked a follow-up question:
-
+Follow-up question:
 {followup_query}
 
-Modify the SQL query accordingly while keeping the same schema.
+Rewrite the follow-up question so it becomes a complete standalone query.
 
-Return ONLY the updated SQL query.
+Return only the rewritten query.
