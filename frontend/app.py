@@ -13,7 +13,7 @@ sys.path.insert(0, str(_ROOT / "utils"))
 from schema_loader import load_schema
 from sql_generator import generate_sql
 from query_executor import execute_query
-from chart_selector import choose_chart_type
+from chart_selector import generate_dashboard_charts
 from chart_renderer import render_chart
 from insights_generator import generate_insights
 from css_loader import load_css
@@ -23,11 +23,11 @@ from css_loader import load_css
 def cached_pipeline(df, schema, query):
     sql_query = generate_sql(query, schema)
     result_df = execute_query(df, sql_query)
-    chart_type = choose_chart_type(query, list(result_df.columns))
-    fig = render_chart(result_df, chart_type)
+    chart_types = generate_dashboard_charts(result_df, query)
+    fig = render_chart(result_df, chart_types)
     insights = generate_insights(result_df)
 
-    return sql_query, result_df, chart_type, fig, insights
+    return sql_query, result_df, chart_types, fig, insights
 
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s — %(message)s")
@@ -147,7 +147,7 @@ with main:
                 uploaded_file.seek(0)
                 df, schema = load_schema(uploaded_file)
 
-            sql_query, result_df, chart_type, fig, insights = cached_pipeline(df, schema, user_query)
+            sql_query, result_df, chart_types, fig, insights = cached_pipeline(df, schema, user_query)
 
         except ResourceExhausted as e:
             st.warning(
@@ -172,8 +172,10 @@ with main:
 
         st.subheader("Generated Dashboard")
         st.markdown('<div class="section-label">Visualisation</div>', unsafe_allow_html=True)
-        st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
-        # KPI Metrics
+        for chart_type in chart_types:
+            fig = render_chart(result_df, chart_type)
+            st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+        
         if not result_df.empty:
             metric_cols = st.columns(3)
 
