@@ -25,6 +25,7 @@ Your task is to generate a valid SQLite SQL query based on the user's question a
 12. If a question has multiple parts (e.g., "broken down by X and highlight Y"), focus ONLY on the primary ask — the first/main metric requested.
 13. Maximum 3 columns in SELECT unless the question explicitly needs more.
 14. Never use reserved SQL keywords as column names without double-quoting them.
+15. If a column name starts with a number (e.g. 1970_population, 12name), always wrap it in double quotes: "1970_population", "12name"
 
 ## QUERY COMPLEXITY RULE
 Simple is always better. If you feel the query needs a CTE or subquery, simplify the question to its core ask and write a flat SELECT instead.
