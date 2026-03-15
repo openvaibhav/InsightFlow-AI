@@ -42,51 +42,54 @@ def _parse_chart_type(raw: str):
     return _DEFAULT_CHART
 
 def choose_chart_type(user_query: str, dataframe_columns: list[str]):
-
     user_query = user_query.lower()
-
-    if any(word in user_query for word in ["trend", "over time", "monthly", "daily"]):
+    
+    if any(word in user_query for word in ["trend", "over time", "monthly", "daily", "weekly", "yearly", "over", "timeline", "history"]):
         return "line"
-
-    if any(word in user_query for word in ["share", "percentage", "split"]):
+    
+    if any(word in user_query for word in ["share", "percentage", "proportion", "breakdown", "distribution", "split", "composition", "ratio", "percent", "makeup"]):
         return "pie"
-
-    if "vs" in user_query or "correlation" in user_query:
+    
+    if any(word in user_query for word in ["vs", "versus", "correlation", "relationship", "compare", "against"]):
         return "scatter"
+    
+    if any("date" in col.lower() or "time" in col.lower() for col in dataframe_columns):
+        return "line"
 
     if len(dataframe_columns) <= 2:
         return "bar"
 
-    if any("date" in col.lower() or "time" in col.lower() for col in dataframe_columns):
-        return "line"
-
     columns_str = ", ".join(dataframe_columns)
     prompt = _PROMPT_TEMPLATE.format(user_query=user_query, columns=columns_str)
-
     raw_response = ask_gemini(prompt)
     return _parse_chart_type(raw_response)
 
+
 def generate_dashboard_charts(df, user_query):
-    charts = []
-
     columns = list(df.columns)
-
     numeric_cols = df.select_dtypes(include="number").columns.tolist()
     categorical_cols = df.select_dtypes(exclude="number").columns.tolist()
 
-    if  len(numeric_cols) >= 2 and len(df) > 5:
-        charts.append("scatter")
-
     main_chart = choose_chart_type(user_query, columns)
-    charts.append(main_chart)
+    
+    charts = [main_chart]
 
-    if categorical_cols and numeric_cols:
-        charts.append("bar")
+    if main_chart == "pie":
+        if categorical_cols and numeric_cols:
+            charts.append("bar")
 
-    if len(categorical_cols) == 1 and len(numeric_cols) == 1:
-        charts.append("pie")
+    elif main_chart == "bar":
+        if len(numeric_cols) >= 2 and len(df) > 5:
+            charts.append("scatter")
+        elif len(categorical_cols) >= 1 and len(numeric_cols) >= 1 and len(df) <= 8:
+            charts.append("pie")
 
-    if len(numeric_cols) >= 2:
-        charts.append("scatter")
+    elif main_chart == "line":
+        if categorical_cols and numeric_cols:
+            charts.append("bar")
+
+    elif main_chart == "scatter":
+        if categorical_cols and numeric_cols:
+            charts.append("bar")
 
     return list(dict.fromkeys(charts))[:3]

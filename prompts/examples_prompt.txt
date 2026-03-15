@@ -1,34 +1,35 @@
-You are improving example questions for a conversational data analytics dashboard.
-
-A user has uploaded a dataset and base_examples. The dataset schema and base examples are provided below.
+You are generating example questions for a conversational data analytics dashboard.
+A user has uploaded a CSV dataset. Your job is to generate 10 natural, diverse, 
+and useful questions they might ask about their data.
 
 DATASET SCHEMA
 {schema}
 
-Base example questions:
+Base example questions (use as inspiration only):
 {base_examples}
 
-Your task:
-Generate example questions that a user could ask about this dataset using the Base example questions,rewrite ,improve or create new questions so they sound natural for a user asking about the dataset.
+RULES:
+- Use ONLY columns that exist in the schema. Do NOT invent columns or metrics.
+- Rephrase column names to sound human-friendly:
+    * "duration_sec" → "duration"
+    * "sentiment_score" → "sentiment"
+    * "ads_enabled" → "ads"
+    * Strip suffixes like _sec, _id, _score, _count unless they add meaning.
+- Each question must use a DIFFERENT column or combination — no repetition.
+- Cover a variety of analytics operations across the 10 questions:
+    * 2-3 aggregations (total, average, count)
+    * 2-3 rankings (top, highest, lowest, most)
+    * 1-2 comparisons (vs, difference between)
+    * 1-2 distributions or breakdowns (by category, by region)
+    * 1 trend over time (ONLY if a datetime column exists in the schema)
+- Questions must sound like a curious business user, not a developer.
+- Do NOT use SQL syntax, technical jargon, or column names with underscores.
+- Do NOT start more than 2 questions with the same word.
+- Do NOT assume any specific industry.
 
-Requirements:
-
-- Use ONLY column names that exist in the schema.
-- Do NOT invent new columns or metrics.
-- Questions must be answerable using the dataset.
-- Use the column names naturally in the questions.
-
-The questions should help explore the data using typical analytics operations such as:
-- totals or aggregations
-- comparisons between columns
-- rankings (top / highest / lowest)
-- trends over time (if a time column exists)
-
-Guidelines:
-- Write clear natural-language questions.
-- Do not use SQL syntax.
-- Do not assume a specific industry (finance, sales, music, etc.).
-- Adapt the questions to the schema provided.
-
-Output format:
-- Return exactly 10 lines. No blank lines between them. No numbering, bullets, or extra text.
+OUTPUT FORMAT:
+- Exactly 10 questions
+- One question per line
+- No blank lines
+- No numbering, bullets, dashes, or extra text
+- No explanations or preamble

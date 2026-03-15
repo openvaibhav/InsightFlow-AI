@@ -19,6 +19,7 @@ from insights_generator import generate_insights
 from css_loader import load_css
 from followup_resolver import resolve_followup
 from example_generator import generate_examples
+from summary_generator import generate_summary
 
 
 @st.cache_data(show_spinner=False)
@@ -100,11 +101,14 @@ if st.session_state.df is None:
                 st.session_state.df = df
                 st.session_state.schema = schema
                 st.session_state.file_name = uploaded_file.name
+                with st.spinner("Analysing your data…"):
+                    data_summary = generate_summary(schema)
+
                 push_message(
                     "assistant",
-                    f"**{uploaded_file.name}** loaded — {df.shape[0]} rows × {df.shape[1]} columns.\n\n"
-                    "I've analysed the schema below. Ask me anything about your data!",
-                    {"schema": schema, "shape": df.shape},
+                    f"**{uploaded_file.name}** loaded — {df.shape[0]:,} rows × {df.shape[1]} columns.\n\n"
+                    f"{data_summary}\n\n",
+                    {"shape": df.shape},
                 )
                 st.rerun()
             except Exception as e:
@@ -224,7 +228,7 @@ with st.container():
 
             st.markdown("</div></div>", unsafe_allow_html=True)
 
-        else:  # user
+        else:
             st.markdown(
                 f"""
             <div class="chat-row user-row">

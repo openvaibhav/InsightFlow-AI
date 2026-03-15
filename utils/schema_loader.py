@@ -112,14 +112,12 @@ def _clean_column_names(df: pd.DataFrame):
         if not tokens:
             col = "column"
         elif len("_".join(tokens)) > 40:
-            # For long mangled names, find the most meaningful token
-            # Prioritize semantic keywords over generic ones
             priority_keywords = [
-                "timestamp", "date", "time", "datetime",  # datetime first
+                "timestamp", "date", "time", "datetime",
                 "id", "name", "url", "type", "code",
                 "category", "region", "language"
             ]
-            col = tokens[-1]  # default to last token
+            col = tokens[-1]
             for keyword in priority_keywords:
                 if any(keyword in t for t in tokens):
                     col = keyword
