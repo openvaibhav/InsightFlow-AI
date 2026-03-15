@@ -1,3 +1,3 @@
-# prompt2dashboard
+# InsightFlow-AI
  Conversational AI for Business Intelligence
 🥝
